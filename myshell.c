@@ -26,7 +26,6 @@ int main()
 		{
 			continue;
 		}
-		reset();
 		Process_String(input_string);
 	}
 }
@@ -135,7 +134,7 @@ void Process_String(char *str)
 			clear();
 		}
 	}
-	else if(strcmp(token,"ls") == 0)
+	else if(strcmp(token,"ls") == 0 || strcmp(token,"cp") == 0)
 	{
 		int i = 0;
 		char *argv[MAXLIST];
@@ -160,7 +159,7 @@ void Process_String(char *str)
 		}
 		else if(pid == 0)
 		{
-			if(execvp("ls",argv) < 0)
+			if(execvp(argv[0],argv) < 0)
 			{
 				printf("Could not execute command\n");
 			}
@@ -173,13 +172,9 @@ void Process_String(char *str)
 		}
 		
 	}
-	else if(strcmp(token,"cp") == 0)
-	{
-		
-	}
 	else
 	{
-		printf("Could not execute command\n");
+		printf("%s: command not found\n",token);
 	}
 	return;
 }
