@@ -15,7 +15,7 @@ void green();
 void reset();//reset color
 int Input(char*);//get command
 void Process_String(char *str);
-void Directory();
+char* substring(char *str ,int start, int end);
 int main()
 {
 	char input_string[MAXCOM];
@@ -28,14 +28,6 @@ int main()
 		}
 		Process_String(input_string);
 	}
-}
-void Directory()
-{
-	green();
-	char cwd[1024];
-	getcwd(cwd,sizeof(cwd));
-	strcat(cwd,"$ ");
-	printf("%s",cwd);
 }
 int Input(char* str)
 {
@@ -69,7 +61,15 @@ void Process_String(char *str)
 		token = strtok(NULL," ");
 		while(token != NULL)
 		{
-			printf("%s ",token);
+			if(token[0] == '$')
+			{
+				char *substr = substring(token ,1 , strlen(token) - 1);
+				printf("%s ",getenv(substr));
+			}
+			else
+			{
+				printf("%s ",token);	
+			}
 			token = strtok(NULL," ");
 		}
 		printf("\n");
@@ -82,7 +82,34 @@ void Process_String(char *str)
 	}
 	else if(strcmp(token,"export") == 0)
 	{
+		char* temp_path = malloc(4096);
+		strcpy(temp_path,"");
+		token = strtok(NULL,"=");
+		char *variable = token;
 		
+		token = strtok(NULL,":");
+		while(token != NULL)
+		{
+			if(strcmp(temp_path,"") == 0);
+			else
+			{
+				strcat(temp_path,":");
+			}
+			if(token[0] == '$')
+			{
+				char *substr = substring(token ,1 , strlen(token) - 1);
+				if(getenv(substr) != NULL)
+				{
+					strcat(temp_path,getenv(substr));
+				}
+			}
+			else
+			{
+				strcat(temp_path,token);
+			}
+			token = strtok(NULL,":");
+		}
+		setenv(variable,temp_path,1);
 	}
 	else if(strcmp(token,"cd") == 0)//assume that file's name doesn't contain spaces
 	{
@@ -185,4 +212,14 @@ void green()
 void reset()
 {
 	printf("\033[0m");
+}
+char* substring(char *str ,int start, int end)
+{
+	char* substr = malloc(512);
+	strcpy(substr,"");
+	for(int i = start ; i <= end ; i++)
+	{
+		strncat(substr,&str[i],1);
+	}
+	return substr;
 }
