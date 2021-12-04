@@ -16,10 +16,15 @@ void reset();//reset color
 int Input(char*);//get command
 void Process_String(char *str);
 char* substring(char *str ,int start, int end);
+void print_history(int all, int num);
+int muti_zero(char*, int);
+
+char hist[2048][1024];
+int hist_num = -1;
+
 int main()
 {
 	char input_string[MAXCOM];
-	clear();
 	while(1)
 	{
 		if(Input(input_string))
@@ -55,6 +60,20 @@ void Process_String(char *str)
 {
 	char temp[1024];
 	strcpy(temp, str);
+	if(hist_num >= 2047)
+	{
+		printf("Excess of history.");
+		exit(0);
+	}
+	else
+	{
+		if(strcmp(hist[hist_num],temp) == 0);
+		else
+		{
+			hist_num += 1;
+			strcpy(hist[hist_num],temp);
+		}
+	}
 	char* token = strtok(temp," ");
 	if(strcmp(token,"echo") == 0)
 	{
@@ -161,7 +180,48 @@ void Process_String(char *str)
 			clear();
 		}
 	}
-	else if(strcmp(token,"ls") == 0 || strcmp(token,"cp") == 0)
+	else if(strcmp(token,"history") == 0)
+	{
+		int count = 0, num;
+		token = strtok(NULL," ");
+		while(token != NULL)
+		{
+			int val = atoi(token);
+			if(val == 0 && muti_zero(token, strlen(token) - 1) == 0)
+			{
+				if(count >= 1)
+				{
+					printf("history: too many arguments\n");
+				}
+				else
+				{
+					printf("history: %s: numeric argument required\n",token);	
+				}
+				return;
+			}
+			else if(val == 0 && muti_zero(token, strlen(token) - 1) == 1);
+			else if(val != 0)
+			{
+				count += 1;
+				if(count >= 2)
+				{
+					printf("history: too many arguments\n");
+					return;
+				}
+				num = val;
+			}
+			token = strtok(NULL," ");
+		}
+		if(count == 0)
+		{
+			print_history(1, num);
+		}
+		if(count == 1)
+		{
+			print_history(0, num);		
+		}
+	}
+	else
 	{
 		int i = 0;
 		char *argv[MAXLIST];
@@ -197,12 +257,7 @@ void Process_String(char *str)
 			wait(NULL);
 			return;
 		}
-		
-	}
-	else
-	{
-		printf("%s: command not found\n",token);
-	}
+	}	
 	return;
 }
 void green()
@@ -222,4 +277,36 @@ char* substring(char *str ,int start, int end)
 		strncat(substr,&str[i],1);
 	}
 	return substr;
+}
+void print_history(int all, int num)
+{
+	if(all || num >= hist_num + 1)
+	{
+		for(int i = 0 ; i <= hist_num ; i++)
+		{
+			printf("%d\t%s\n",i+1,hist[i]);
+		}
+	}
+	else
+	{
+		if(num < hist_num + 1)
+		{
+			for(int i = hist_num - num + 1 ; i <= hist_num ; i++)
+			{
+				printf("%d\t%s\n",i+1,hist[i]);
+			}
+		}
+			
+	}
+}
+int muti_zero(char *str, int num)
+{
+	for(int i = 0 ; i <= num ; i++)
+	{
+		if(str[i] != '0')
+		{
+			return 0;
+		}
+	}
+	return 1;
 }
