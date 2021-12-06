@@ -23,6 +23,7 @@ void My_clear(char*);
 void My_cd(char*);
 void My_export(char*);
 void My_history(char*);
+int Is_redirection(char*);
 
 char hist[2048][1024];
 int hist_num = -1;
@@ -198,6 +199,41 @@ int muti_zero(char *str, int num)
 }
 void My_echo(char *temp)
 {
+	FILE *fptr = stdout;
+	int state = Is_redirection(temp);
+	if(state == 1)
+	{
+		char temp2[1024];
+		strcpy(temp2,temp);
+		char *filename = strtok(temp2," ");
+		while(filename != NULL)
+		{
+			if(strcmp(filename,">") == 0)
+			{
+				filename = strtok(NULL," ");
+				fptr = fopen(filename,"w");
+				int i = 0;
+				while(1)
+				{
+					if(temp[i] == '>')
+					{
+						break;
+					}
+					else
+					{
+						i++;
+					}
+				}
+				int length = strlen(temp);
+				for(int j = i ; j < length ; j++)
+				{
+					temp[j] = '\0';
+				}
+				break;
+			}
+			filename = strtok(NULL," ");
+		}		
+	}
 	char* token = strtok(temp," ");
 	token = strtok(NULL," ");
 	while(token != NULL)
@@ -205,15 +241,19 @@ void My_echo(char *temp)
 		if(token[0] == '$')
 		{
 			char *substr = substring(token ,1 , strlen(token) - 1);
-			printf("%s ",getenv(substr));
+			fprintf(fptr,"%s ",getenv(substr));
 		}
 		else
 		{
-			printf("%s ",token);	
+			fprintf(fptr,"%s ",token);	
 		}
 		token = strtok(NULL," ");
 	}
-	printf("\n");
+	fprintf(fptr,"\n");
+	if(state == 1)
+	{
+		fclose(fptr);	
+	}
 	return;
 }
 void My_clear(char *temp)
@@ -368,4 +408,15 @@ void My_history(char *temp)
 		print_history(0, num);		
 	}
 	return;
+}
+int Is_redirection(char *str)
+{
+	for(int i = 0 ; i < strlen(str) ; i++)
+	{
+		if(str[i] == '>')
+		{
+			return 1;
+		}
+	}
+	return 0;
 }
