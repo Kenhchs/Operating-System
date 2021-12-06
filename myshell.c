@@ -22,6 +22,7 @@ void My_echo(char*);
 void My_clear(char*);
 void My_cd(char*);
 void My_export(char*);
+void My_pwd(char*);
 void My_history(char*);
 int Is_redirection(char*);
 
@@ -88,9 +89,7 @@ void Process_String(char *str)
 	}
 	else if(strcmp(token,"pwd") == 0)
 	{
-		char cwd[1024];
-		getcwd(cwd,sizeof(cwd));
-		printf("%s\n",cwd);
+		My_pwd(&pass[0]);
 	}
 	else if(strcmp(token,"export") == 0)
 	{
@@ -363,6 +362,35 @@ void My_export(char *temp)
 	else
 	{
 		setenv(variable,temp_path,1);	
+	}
+	return;
+}
+void My_pwd(char* temp)
+{
+	FILE *fptr = stdout;
+	int state = Is_redirection(temp);
+	if(state == 1)
+	{
+		char temp2[1024];
+		strcpy(temp2,temp);
+		char *filename = strtok(temp2," ");
+		while(filename != NULL)
+		{
+			if(strcmp(filename,">") == 0)
+			{
+				filename = strtok(NULL," ");
+				fptr = fopen(filename,"w");
+				break;
+			}
+			filename = strtok(NULL," ");
+		}
+	}
+	char cwd[1024];
+	getcwd(cwd,sizeof(cwd));
+	fprintf(fptr,"%s\n",cwd);
+	if(state == 1)
+	{
+		fclose(fptr);
 	}
 	return;
 }
