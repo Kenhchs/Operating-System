@@ -17,7 +17,7 @@ void reset();//reset color
 int Input(char*);//get command
 void Process_String(char *str);
 char* substring(char *str ,int start, int end);
-void print_history(int all, int num);
+void print_history(int, int, FILE*);
 int muti_zero(char*, int);
 void My_echo(char*);
 void My_clear(char*);
@@ -149,13 +149,13 @@ char* substring(char *str ,int start, int end)
 	}
 	return substr;
 }
-void print_history(int all, int num)
+void print_history(int all, int num,  FILE* fptr)
 {
 	if(all || num >= hist_num + 1)
 	{
 		for(int i = 0 ; i <= hist_num ; i++)
 		{
-			printf("%d\t%s\n",i+1,hist[i]);
+			fprintf(fptr,"%d\t%s\n",i+1,hist[i]);
 		}
 	}
 	else
@@ -164,7 +164,7 @@ void print_history(int all, int num)
 		{
 			for(int i = hist_num - num + 1 ; i <= hist_num ; i++)
 			{
-				printf("%d\t%s\n",i+1,hist[i]);
+				fprintf(fptr,"%d\t%s\n",i+1,hist[i]);
 			}
 		}
 			
@@ -381,6 +381,42 @@ void My_pwd(char* temp)
 }
 void My_history(char *temp)
 {
+	FILE *fptr = stdout;
+	int state = Is_redirection(temp);
+	if(state == 1)
+	{
+		char temp2[1024];
+		strcpy(temp2,temp);
+		char *filename = strtok(temp2," ");
+		while(filename != NULL)
+		{
+			if(strcmp(filename,">") == 0)
+			{
+				filename = strtok(NULL," ");
+				fptr = fopen(filename,"w");
+				int i = 0;
+				while(1)
+				{
+					if(temp[i] == '>')
+					{
+						break;
+					}
+					else
+					{
+						i++;
+					}
+				}
+				int length = strlen(temp);
+				for(int j = i ; j < length ; j++)
+				{
+					temp[j] = '\0';
+				}
+				break;
+			}
+			filename = strtok(NULL," ");
+		}
+	}
+
 	char* token = strtok(temp," ");
 	int count = 0, num;
 	token = strtok(NULL," ");
@@ -414,11 +450,15 @@ void My_history(char *temp)
 	}
 	if(count == 0)
 	{
-		print_history(1, num);
+		print_history(1, num, fptr);
 	}
 	if(count == 1)
 	{
-		print_history(0, num);		
+		print_history(0, num, fptr);		
+	}
+	if(state == 1)
+	{
+		fclose(fptr);
 	}
 	return;
 }
