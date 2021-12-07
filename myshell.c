@@ -345,11 +345,7 @@ void My_export(char *temp)
 		}
 		token = strtok(NULL,":");
 	}
-	if(strcmp(temp_path,"") == 0);
-	else
-	{
-		setenv(variable,temp_path,1);	
-	}
+	setenv(variable,temp_path,1);
 	return;
 }
 void My_pwd(char* temp)
