@@ -26,7 +26,7 @@ void My_export(char*);
 void My_pwd(char*);
 void My_history(char*);
 int Is_redirection(char*);
-void output (char **args);
+void output (char **args, int);
 
 char hist[2048][1024];
 int hist_num = -1;
@@ -125,9 +125,7 @@ void Process_String(char *str)
 			token = strtok(NULL," ");
 		}
 		argv[i] = NULL;
-		
-
-		output (argv);
+		output (argv,i);
 	}	
 	return;
 }
@@ -473,18 +471,21 @@ int Is_redirection(char *str)
 	}
 	return 0;
 }
-void output (char **args)
+void output (char **args, int argc)
 {
+    char *amp = "&";
+    int found_amp = 0;
+    if(strcmp(args[argc - 1],amp) == 0)
+    {
+	found_amp = 1;
+	args[argc - 1] = NULL;
+    }
     pid_t pid, status;
     pid = fork ();
 
     if (pid < 0) {
         perror ("fork");
         return;
-    }
-    else if (pid > 0) {
-        while (wait (&status) != pid)
-            continue;
     }
     else if (pid == 0) {
         int idx = 0,
@@ -525,5 +526,9 @@ void output (char **args)
             perror ("execvp");
         }
         _exit (EXIT_FAILURE);  
-    }                        
+    }
+    else if(!found_amp)
+    {
+	waitpid(pid, NULL, 0);
+    }                       
 }
