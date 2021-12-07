@@ -6,6 +6,7 @@
 #include<sys/wait.h>
 #include<readline/readline.h>
 #include<readline/history.h>
+#include<fcntl.h>
   
 #define MAXCOM 1000
 #define MAXLIST 100  
@@ -25,6 +26,7 @@ void My_export(char*);
 void My_pwd(char*);
 void My_history(char*);
 int Is_redirection(char*);
+void output (char **args);
 
 char hist[2048][1024];
 int hist_num = -1;
@@ -124,25 +126,8 @@ void Process_String(char *str)
 		}
 		argv[i] = NULL;
 		
-		pid_t pid = fork();
-		if(pid < 0)
-		{
-			printf("Failed forking child\n");
-			return;
-		}
-		else if(pid == 0)
-		{
-			if(execvp(argv[0],argv) < 0)
-			{
-				printf("Could not execute command\n");
-			}
-			return;
-		}
-		else
-		{
-			wait(NULL);
-			return;
-		}
+
+		output (argv);
 	}	
 	return;
 }
@@ -447,4 +432,58 @@ int Is_redirection(char *str)
 		}
 	}
 	return 0;
+}
+void output (char **args)
+{
+    pid_t pid, status;
+    pid = fork ();
+
+    if (pid < 0) {
+        perror ("fork");
+        return;
+    }
+    else if (pid > 0) {
+        while (wait (&status) != pid)
+            continue;
+    }
+    else if (pid == 0) {
+        int idx = 0,
+            fd;
+        while (args[idx]) { 
+            if (*args[idx] == '>' && args[idx+1]) {
+                if ((fd = open (args[idx+1], 
+                            O_WRONLY | O_CREAT, 
+                            S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1) {
+                    perror (args[idx+1]);
+                    exit (EXIT_FAILURE);
+                }
+                dup2 (fd, 1);
+                dup2 (fd, 2);
+                close (fd);
+                while (args[idx]) {
+                    args[idx] = args[idx+2];
+                    idx++; 
+                }
+                break;
+            }
+            else if (*args[idx] == '<' && args[idx+1]) {
+                if ((fd = open (args[idx+1], O_RDONLY)) == -1) {
+                    perror (args[idx+1]);
+                    exit (EXIT_FAILURE);
+                }
+                dup2 (fd, 0);
+                close (fd);
+                while (args[idx]) {
+                    args[idx] = args[idx+2];
+                    idx++; 
+                }
+                break;
+            }
+            idx++;
+        }
+        if (execvp (args[0], args) == -1) {
+            perror ("execvp");
+        }
+        _exit (EXIT_FAILURE);  
+    }                        
 }
