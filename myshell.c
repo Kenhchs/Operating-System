@@ -296,10 +296,33 @@ void My_export(char *temp)
 {
 	char* token = strtok(temp," ");
 	char* temp_path = malloc(4096);
-	strcpy(temp_path,"");
 	token = strtok(NULL,"=");
 	char *variable = token;
 	
+	if(token != NULL)
+	{
+		strcpy(temp_path,"");
+	}
+	else
+	{
+		char *exports[60] = {"CLUTTER_IM_MODULE","COLORTERM","DBUS_SESSION_BUS_ADDRESS","DESKTOP_AUTOSTART_ID","DESKTOP_SESSION","DISPLAY","GDMSESSION","GNOME_DESKTOP_SESSION_ID","GNOME_SHELL_SESSION_MODE","GNOME_TERMINAL_SCREEN","GNOME_TERMINAL_SERVICE","GPG_AGENT_INFO","GTK_IM_MODULE","GTK_MODULES","HOME","IM_CONFIG_PHASE","LANG","LC_ADDRESS","LC_IDENTIFICATION","LC_MEASUREMENT","LC_MONETARY","LC_NAME","LC_NUMERIC","LC_PAPER","LC_TELEPHONE","LC_TIME","LESSCLOSE","LESSOPEN","LOGNAME","LS_COLORS","OLDPWD","PATH","PWD","QT4_IM_MODULE","QT_ACCESSIBILITY","QT_IM_MODULE","SESSION_MANAGER","SHELL","SHLVL","SSH_AGENT_PID","SSH_AUTH_SOCK","TERM","TEXTDOMAIN","TEXTDOMAINDIR","USER","USERNAME","VTE_VERSION","WINDOWPATH","XAUTHORITY","XDG_CONFIG_DIRS","XDG_CURRENT_DESKTOP","XDG_DATA_DIRS","XDG_MENU_PREFIX","XDG_RUNTIME_DIR","XDG_SEAT","XDG_SESSION_DESKTOP","XDG_SESSION_ID","XDG_SESSION_TYPE","XDG_VTNR","XMODIFIERS"};
+		for(int i = 0 ; i < 60 ; i++)
+		{
+			if(getenv(exports[i]) <= 0)
+			{
+				printf("declare -x %s\n",exports[i]);
+				continue;
+			}
+			if(strcmp(getenv(exports[i]),"") == 0)
+			{
+				printf("declare -x %s\n",exports[i]);
+			}
+			else
+			{
+				printf("declare -x %s=\"%s\"\n",exports[i],getenv(exports[i]));
+			}
+		}
+	}
 	token = strtok(NULL,":");
 	while(token != NULL)
 	{
@@ -322,26 +345,7 @@ void My_export(char *temp)
 		}
 		token = strtok(NULL,":");
 	}
-	if(strcmp(temp_path,"") == 0)
-	{
-		char *exports[60] = {"CLUTTER_IM_MODULE","COLORTERM","DBUS_SESSION_BUS_ADDRESS","DESKTOP_AUTOSTART_ID","DESKTOP_SESSION","DISPLAY","GDMSESSION","GNOME_DESKTOP_SESSION_ID","GNOME_SHELL_SESSION_MODE","GNOME_TERMINAL_SCREEN","GNOME_TERMINAL_SERVICE","GPG_AGENT_INFO","GTK_IM_MODULE","GTK_MODULES","HOME","IM_CONFIG_PHASE","LANG","LC_ADDRESS","LC_IDENTIFICATION","LC_MEASUREMENT","LC_MONETARY","LC_NAME","LC_NUMERIC","LC_PAPER","LC_TELEPHONE","LC_TIME","LESSCLOSE","LESSOPEN","LOGNAME","LS_COLORS","OLDPWD","PATH","PWD","QT4_IM_MODULE","QT_ACCESSIBILITY","QT_IM_MODULE","SESSION_MANAGER","SHELL","SHLVL","SSH_AGENT_PID","SSH_AUTH_SOCK","TERM","TEXTDOMAIN","TEXTDOMAINDIR","USER","USERNAME","VTE_VERSION","WINDOWPATH","XAUTHORITY","XDG_CONFIG_DIRS","XDG_CURRENT_DESKTOP","XDG_DATA_DIRS","XDG_MENU_PREFIX","XDG_RUNTIME_DIR","XDG_SEAT","XDG_SESSION_DESKTOP","XDG_SESSION_ID","XDG_SESSION_TYPE","XDG_VTNR","XMODIFIERS"};
-		for(int i = 0 ; i < 60 ; i++)
-		{
-			if(getenv(exports[i]) <= 0)
-			{
-				printf("declare -x %s\n",exports[i]);
-				continue;
-			}
-			if(strcmp(getenv(exports[i]),"") == 0)
-			{
-				printf("declare -x %s\n",exports[i]);
-			}
-			else
-			{
-				printf("declare -x %s=\"%s\"\n",exports[i],getenv(exports[i]));
-			}
-		}
-	}
+	if(strcmp(temp_path,"") == 0);
 	else
 	{
 		setenv(variable,temp_path,1);	
